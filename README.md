@@ -1,5 +1,5 @@
 # ConvertToMsBuildSdk
-ConvertToMsBuildSdk converts projects to new project style (Sdk).
+ConvertToMsBuildSdk converts msbuild .NET projects to new project style (Sdk).
 Usage:
   ConvertToMsBuildSdk <folder>
 
