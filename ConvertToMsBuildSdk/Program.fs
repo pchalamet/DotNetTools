@@ -27,7 +27,7 @@ let convertPackageConfig (projectFile : FileInfo) =
 
 // http://www.natemcmaster.com/blog/2017/03/09/vs2015-to-vs2017-upgrade/
 let convertProject (projectFile : FileInfo) =
-    let projectFileName = projectFile.Name
+    let projectFileName = projectFile.Name |> Path.GetFileNameWithoutExtension
     let xdoc = XDocument.Load (projectFile.FullName)
 
     // https://docs.microsoft.com/en-us/dotnet/standard/frameworks
