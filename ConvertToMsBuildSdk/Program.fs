@@ -16,6 +16,8 @@ let convertPackageConfig (projectFile : FileInfo) =
     let packageFileName = projectFile.Directory.GetFiles("packages.config").SingleOrDefault()
     if packageFileName |> isNull |> not then
         let xdoc = XDocument.Load (packageFileName.FullName)
+        packageFileName.Delete()
+
         let pkgs = xdoc.Descendants(NsNone + "package")
                      |> Seq.map (fun x -> XElement(NsNone + "PackageReference",
                                              XAttribute(NsNone + "Include", (!> x.Attribute(NsNone + "id") : string)),
