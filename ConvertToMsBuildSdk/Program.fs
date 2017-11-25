@@ -134,12 +134,20 @@ let saveProject (projectFile : FileInfo, content : XDocument) =
     content.Save (projectFile.FullName)
 
 
+let searchProjects (rootFolder : DirectoryInfo) =
+    rootFolder.EnumerateFiles("*.csproj", SearchOption.AllDirectories)
+        |> Seq.append (rootFolder.EnumerateFiles("*.vbproj", SearchOption.AllDirectories))
+        |> Seq.append (rootFolder.EnumerateFiles("*.fsproj", SearchOption.AllDirectories))
+
 [<EntryPoint>]
 let main argv = 
+    if argv |> Array.length = 0 then failwithf "Usage: ConvertToMsBuildSdk <folder>"
     let rootFolder = argv.[0] |> DirectoryInfo
-    let csprojs = rootFolder.EnumerateFiles("*.csproj", SearchOption.AllDirectories)
-    csprojs |> Seq.map (fun x -> x, convertProject x)
-            |> Seq.iter saveProject
+    if rootFolder.Exists |> not then failwithf "Directory %A does not exist" rootFolder
+
+    rootFolder |> searchProjects 
+               |> Seq.map (fun x -> x, convertProject x)
+               |> Seq.iter saveProject
     0
 
    
