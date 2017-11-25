@@ -32,8 +32,6 @@ let convertProject (projectFile : FileInfo) =
 
     // https://docs.microsoft.com/en-us/dotnet/standard/frameworks
     let xTargetFx = match !> xdoc.Descendants(NsMsBuild + "TargetFrameworkVersion").First() : string with
-                    | "v2.0" -> "net20"
-                    | "v3.0" -> "net30"
                     | "v3.5" -> "net35"
                     | "v4.0" -> "net40"
                     | "v4.5" -> "net45"
@@ -44,7 +42,7 @@ let convertProject (projectFile : FileInfo) =
                     | "v4.6.2" -> "net462"
                     | "v4.7" -> "net47"
                     | "v4.7.1" -> "net471"
-                    | x -> x
+                    | x -> failwithf "Unsupported TargetFrameworkVersion %A" x
                     |> (fun x -> XElement(NsNone + "TargetFramework", x))
 
     let xPlatform = match !> xdoc.Descendants(NsMsBuild + "Platform").FirstOrDefault() : string with
@@ -85,8 +83,10 @@ let convertProject (projectFile : FileInfo) =
                  | null -> null
                  | x -> XElement(NsNone + "WarningsAsErrors", x)
 
+    let isFSharp = xdoc.Descendants(NsMsBuild + "Compile")
+                    |> Seq.exists (fun x -> (!> x.Attribute(NsNone + "Include") : string).EndsWith(".fs"))
     let src = xdoc.Descendants(NsMsBuild + "Compile")
-                    |> Seq.filter (fun x -> (!> x.Attribute(NsNone + "Include") : string).StartsWith(".."))
+                    |> Seq.filter (fun x -> isFSharp || (!> x.Attribute(NsNone + "Include") : string).StartsWith(".."))
     let res = xdoc.Descendants(NsMsBuild + "EmbeddedResource")
                     |> Seq.filter (fun x -> (!> x.Attribute(NsNone + "Include") : string).StartsWith(".."))
     let content = xdoc.Descendants(NsMsBuild + "Content")
