@@ -1,7 +1,6 @@
 *.user
 *.suo
 *.cache
-*.sln
 *.ncrunchsolution
 *.dgml
 bin
