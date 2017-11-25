@@ -17,7 +17,7 @@ http://www.natemcmaster.com/blog/2017/03/09/vs2015-to-vs2017-upgrade/
 * only .net fx 3.5+ are supported
 
 ## Disclaimer
-DISCLAIMER: converted projects are overwritten !!
+Converted projects are overwritten !!
 I can't be liable if you lose something or things do not work as expected !
 You have been warned !
 
