@@ -133,7 +133,6 @@ let convertProject (projectFile : FileInfo) =
 
 let isCandidate (projectFile : FileInfo) =
     let xdoc = XDocument.Load (projectFile.FullName)
-
     xdoc.Root.Attribute(NsNone + "Sdk") |> isNull
 
 
