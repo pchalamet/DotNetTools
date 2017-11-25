@@ -11,6 +11,7 @@ http://www.natemcmaster.com/blog/2017/03/09/vs2015-to-vs2017-upgrade/
 ## Restrictions
 * NuGet packages are converted to PackageReference. Paket is not supported for the moment.
 * Imports are discarded
+* DefineConstants are discarded
 * AutoGenerateBindingRedirects is forced to true
 * GenerateAssemblyInfo is forced to false
 * only .net fx 3.5+ are supported
