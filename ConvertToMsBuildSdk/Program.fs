@@ -25,6 +25,7 @@ let convertPackageConfig (projectFile : FileInfo) =
         null        
 
 
+
 // http://www.natemcmaster.com/blog/2017/03/09/vs2015-to-vs2017-upgrade/
 let convertProject (projectFile : FileInfo) =
     let projectFileName = projectFile.Name |> Path.GetFileNameWithoutExtension
@@ -130,6 +131,12 @@ let convertProject (projectFile : FileInfo) =
             xSrc,
             xPrjRefs))
 
+let isCandidate (projectFile : FileInfo) =
+    let xdoc = XDocument.Load (projectFile.FullName)
+
+    xdoc.Root.Attribute(NsNone + "Sdk") |> isNull
+
+
 let saveProject (projectFile : FileInfo, content : XDocument) =
     content.Save (projectFile.FullName)
 
@@ -146,6 +153,7 @@ let main argv =
     if rootFolder.Exists |> not then failwithf "Directory %A does not exist" rootFolder
 
     rootFolder |> searchProjects 
+               |> Seq.filter isCandidate
                |> Seq.map (fun x -> x, convertProject x)
                |> Seq.iter saveProject
     0
