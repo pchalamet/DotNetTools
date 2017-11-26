@@ -33,10 +33,6 @@ let convertProject (projectFile : FileInfo) =
     let projectFileName = projectFile.Name |> Path.GetFileNameWithoutExtension
     let xdoc = XDocument.Load (projectFile.FullName)
 
-    let removeNsForInclude nsname (x : XElement) = 
-        XElement(nsname, 
-            XAttribute(NsNone + "Include", (!> x.Attribute(NsNone + "Include") : string)))
-
     let rewrite (xel : XElement) =
         if xel |> isNull |> not then
             XElement(NsNone + xel.Name.LocalName,
