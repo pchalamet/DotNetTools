@@ -37,6 +37,14 @@ let convertProject (projectFile : FileInfo) =
         XElement(nsname, 
             XAttribute(NsNone + "Include", (!> x.Attribute(NsNone + "Include") : string)))
 
+    let rewrite (xel : XElement) =
+        if xel |> isNull |> not then
+            XElement(NsNone + xel.Name.LocalName,
+                xel.Attributes() |> Seq.map (fun x -> XAttribute(NsNone + x.Name.LocalName, x.Value)),
+                xel.Nodes() |> Seq.filter (fun x -> x.NodeType = System.Xml.XmlNodeType.Text))
+        else 
+            null
+
     // https://docs.microsoft.com/en-us/dotnet/standard/frameworks
     let xTargetFx = match !> xdoc.Descendants(NsMsBuild + "TargetFrameworkVersion").First() : string with
                     | "v3.5" -> "net35"
@@ -57,17 +65,11 @@ let convertProject (projectFile : FileInfo) =
                     | "AnyCPU" -> null
                     | x -> XElement(NsNone + "PlatformTarget", x)
 
-    let xunsafe = match !> xdoc.Descendants(NsMsBuild + "AllowUnsafeBlocks").FirstOrDefault() : string with
-                  | null -> null
-                  | x -> XElement(NsNone + "AllowUnsafeBlocks", x)
+    let xunsafe = xdoc.Descendants(NsMsBuild + "AllowUnsafeBlocks").FirstOrDefault() |> rewrite
 
-    let xSignAss = match !> xdoc.Descendants(NsMsBuild + "SignAssembly").FirstOrDefault() : string with
-                   | null -> null
-                   | x -> XElement(NsNone + "SignAssembly", x)
+    let xSignAss = xdoc.Descendants(NsMsBuild + "SignAssembly").FirstOrDefault() |> rewrite
 
-    let xOriginatorSign = match !> xdoc.Descendants(NsMsBuild + "AssemblyOriginatorKeyFile").FirstOrDefault() : string with
-                          | null -> null
-                          | x -> XElement(NsNone + "AssemblyOriginatorKeyFile", x) 
+    let xOriginatorSign = xdoc.Descendants(NsMsBuild + "AssemblyOriginatorKeyFile").FirstOrDefault() |> rewrite
 
     let xAssName = match !> xdoc.Descendants(NsMsBuild + "AssemblyName").FirstOrDefault() : string with
                    | x when x <> projectFileName -> XElement(NsNone + "AssemblyName", x)
@@ -82,37 +84,33 @@ let convertProject (projectFile : FileInfo) =
                    | "Library" -> null
                    | x -> XElement(NsNone + "OutputType", x)
 
-    let xWarnAsErr = match !> xdoc.Descendants(NsMsBuild + "TreatWarningsAsErrors").FirstOrDefault() : string with
-                     | null -> null
-                     | x -> XElement(NsNone + "TreatWarningsAsErrors", x)
+    let xWarnAsErr = xdoc.Descendants(NsMsBuild + "TreatWarningsAsErrors").FirstOrDefault() |> rewrite
 
-    let xWarns = match !> xdoc.Descendants(NsMsBuild + "WarningsAsErrors").FirstOrDefault() : string with
-                 | null -> null
-                 | x -> XElement(NsNone + "WarningsAsErrors", x)
+    let xWarns = xdoc.Descendants(NsMsBuild + "WarningsAsErrors").FirstOrDefault() |> rewrite
 
     let isFSharp = xdoc.Descendants(NsMsBuild + "Compile")
                     |> Seq.exists (fun x -> (!> x.Attribute(NsNone + "Include") : string).EndsWith(".fs"))
     let src = xdoc.Descendants(NsMsBuild + "Compile")
                     |> Seq.filter (fun x -> isFSharp || (!> x.Attribute(NsNone + "Include") : string).StartsWith(".."))
-                    |> Seq.map (removeNsForInclude (NsNone + "Compile"))
+                    |> Seq.map rewrite
     let res = xdoc.Descendants(NsMsBuild + "EmbeddedResource")
                     |> Seq.filter (fun x -> (!> x.Attribute(NsNone + "Include") : string).StartsWith(".."))
-                    |> Seq.map (removeNsForInclude (NsNone + "EmbeddedResource"))
+                    |> Seq.map rewrite
     let content = xdoc.Descendants(NsMsBuild + "Content")
-                    |> Seq.map (removeNsForInclude (NsNone + "Content"))
+                    |> Seq.map rewrite
     let none = xdoc.Descendants(NsMsBuild + "None")
                     |> Seq.filter (fun x -> (!> x.Attribute(NsNone + "Include") : string) <> "packages.config")
-                    |> Seq.map (removeNsForInclude (NsNone + "None"))
+                    |> Seq.map rewrite
     let xSrc = XElement(NsNone + "ItemGroup", src, content, res, none)
 
     let prjRefs = xdoc.Descendants(NsMsBuild + "ProjectReference")
-                     |> Seq.map (removeNsForInclude (NsNone + "ProjectReference"))
+                    |> Seq.map rewrite
     let xPrjRefs = if prjRefs.Any() then XElement(NsNone + "ItemGroup", prjRefs)
                    else null
 
     let refs = xdoc.Descendants(NsMsBuild + "Reference")
                     |> Seq.filter (fun x -> x.HasElements |> not)
-                    |> Seq.map (removeNsForInclude (NsNone + "Reference"))
+                    |> Seq.map rewrite
     let xRefs = if refs.Any() then XElement(NsNone + "ItemGroup", refs)
                 else null
 

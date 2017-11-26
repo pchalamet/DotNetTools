@@ -14,7 +14,7 @@ http://www.natemcmaster.com/blog/2017/03/09/vs2015-to-vs2017-upgrade/
 * DefineConstants are discarded
 * AutoGenerateBindingRedirects is forced to true
 * GenerateAssemblyInfo is forced to false
-* only .net fx 3.5+ are supported
+* only .net fx 3.5+ is supported
 
 ## Disclaimer
 Converted projects are overwritten !!
