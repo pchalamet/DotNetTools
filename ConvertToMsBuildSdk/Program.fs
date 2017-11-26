@@ -88,13 +88,20 @@ let convertProject (projectFile : FileInfo) =
 
     let isFSharp = xdoc.Descendants(NsMsBuild + "Compile")
                     |> Seq.exists (fun x -> (!> x.Attribute(NsNone + "Include") : string).EndsWith(".fs"))
+    let removeNsForInclude nsname (x : XElement) = 
+        XElement(nsname, 
+            XAttribute(NsNone + "Include", (!> x.Attribute(NsNone + "Include") : string)))
     let src = xdoc.Descendants(NsMsBuild + "Compile")
                     |> Seq.filter (fun x -> isFSharp || (!> x.Attribute(NsNone + "Include") : string).StartsWith(".."))
+                    |> Seq.map (removeNsForInclude (NsNone + "Compile"))
     let res = xdoc.Descendants(NsMsBuild + "EmbeddedResource")
                     |> Seq.filter (fun x -> (!> x.Attribute(NsNone + "Include") : string).StartsWith(".."))
+                    |> Seq.map (removeNsForInclude (NsNone + "EmbeddedResource"))
     let content = xdoc.Descendants(NsMsBuild + "Content")
+                    |> Seq.map (removeNsForInclude (NsNone + "Content"))
     let none = xdoc.Descendants(NsMsBuild + "None")
                     |> Seq.filter (fun x -> (!> x.Attribute(NsNone + "Include") : string) <> "packages.config")
+                    |> Seq.map (removeNsForInclude (NsNone + "None"))
     let xSrc = XElement(NsNone + "ItemGroup", src, content, res, none)
 
     let prjRefs = xdoc.Descendants(NsMsBuild + "ProjectReference")
