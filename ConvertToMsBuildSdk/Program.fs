@@ -33,6 +33,10 @@ let convertProject (projectFile : FileInfo) =
     let projectFileName = projectFile.Name |> Path.GetFileNameWithoutExtension
     let xdoc = XDocument.Load (projectFile.FullName)
 
+    let removeNsForInclude nsname (x : XElement) = 
+        XElement(nsname, 
+            XAttribute(NsNone + "Include", (!> x.Attribute(NsNone + "Include") : string)))
+
     // https://docs.microsoft.com/en-us/dotnet/standard/frameworks
     let xTargetFx = match !> xdoc.Descendants(NsMsBuild + "TargetFrameworkVersion").First() : string with
                     | "v3.5" -> "net35"
@@ -88,9 +92,6 @@ let convertProject (projectFile : FileInfo) =
 
     let isFSharp = xdoc.Descendants(NsMsBuild + "Compile")
                     |> Seq.exists (fun x -> (!> x.Attribute(NsNone + "Include") : string).EndsWith(".fs"))
-    let removeNsForInclude nsname (x : XElement) = 
-        XElement(nsname, 
-            XAttribute(NsNone + "Include", (!> x.Attribute(NsNone + "Include") : string)))
     let src = xdoc.Descendants(NsMsBuild + "Compile")
                     |> Seq.filter (fun x -> isFSharp || (!> x.Attribute(NsNone + "Include") : string).StartsWith(".."))
                     |> Seq.map (removeNsForInclude (NsNone + "Compile"))
@@ -105,15 +106,13 @@ let convertProject (projectFile : FileInfo) =
     let xSrc = XElement(NsNone + "ItemGroup", src, content, res, none)
 
     let prjRefs = xdoc.Descendants(NsMsBuild + "ProjectReference")
-                     |> Seq.map (fun x -> XElement(NsNone + "ProjectReference", 
-                                             XAttribute(NsNone + "Include", (!> x.Attribute(NsNone + "Include") : string))))
+                     |> Seq.map (removeNsForInclude (NsNone + "ProjectReference"))
     let xPrjRefs = if prjRefs.Any() then XElement(NsNone + "ItemGroup", prjRefs)
                    else null
 
     let refs = xdoc.Descendants(NsMsBuild + "Reference")
                     |> Seq.filter (fun x -> x.HasElements |> not)
-                    |> Seq.map (fun x -> XElement(NsNone + "Reference",
-                                            XAttribute(NsNone + "Include", (!> x.Attribute(NsNone + "Include") : string))))
+                    |> Seq.map (removeNsForInclude (NsNone + "Reference"))
     let xRefs = if refs.Any() then XElement(NsNone + "ItemGroup", refs)
                 else null
 
