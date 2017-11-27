@@ -1,7 +1,10 @@
 # ConvertToMsBuildSdk
 ConvertToMsBuildSdk converts msbuild .NET projects to new project style (Sdk).
+
 Usage:
+```
   ConvertToMsBuildSdk <folder>
+```
 
 It will look for projects (*.csproj, *.vbproj, *.fsproj) and convert them to new format.
 
