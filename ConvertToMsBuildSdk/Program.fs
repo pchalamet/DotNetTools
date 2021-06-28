@@ -53,6 +53,7 @@ let convertProject (projectFile : FileInfo) =
                     | "v4.6.2" -> "net462"
                     | "v4.7" -> "net47"
                     | "v4.7.1" -> "net471"
+                    | "v4.7.2" -> "net472"
                     | x -> failwithf "Unsupported TargetFrameworkVersion %A" x
                     |> (fun x -> XElement(NsNone + "TargetFramework", x))
 
